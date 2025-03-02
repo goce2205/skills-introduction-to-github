@@ -1,1 +1,106 @@
-1
+pip install pygame
+import pygame
+import random
+
+# Initialize Pygame
+pygame.init()
+
+# Screen dimensions
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 600
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+
+# Colors
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+GREEN = (0, 255, 0)
+RED = (255, 0, 0)
+
+# Clock
+clock = pygame.time.Clock()
+
+# Player
+player_size = 50
+player_x = SCREEN_WIDTH // 2
+player_y = SCREEN_HEIGHT - player_size
+player_speed = 5
+
+# Obstacles
+obstacle_width = 100
+obstacle_height = 50
+obstacle_speed = 5
+obstacle_list = []
+
+# Game variables
+score = 0
+font = pygame.font.SysFont(None, 35)
+
+def draw_player(x, y):
+    pygame.draw.rect(screen, GREEN, [x, y, player_size, player_size])
+
+def draw_obstacle(obstacle_x, obstacle_y):
+    pygame.draw.rect(screen, RED, [obstacle_x, obstacle_y, obstacle_width, obstacle_height])
+
+def display_score(score):
+    text = font.render(f"Score: {score}", True, BLACK)
+    screen.blit(text, (10, 10))
+
+def spawn_obstacle():
+    obstacle_x = random.randint(0, SCREEN_WIDTH - obstacle_width)
+    obstacle_y = -obstacle_height
+    obstacle_list.append([obstacle_x, obstacle_y])
+
+def update_obstacles():
+    for obstacle in obstacle_list:
+        obstacle[1] += obstacle_speed
+        if obstacle[1] > SCREEN_HEIGHT:
+            obstacle_list.remove(obstacle)
+            global score
+            score += 1
+
+def check_collision():
+    for obstacle in obstacle_list:
+        if (player_x < obstacle[0] + obstacle_width and
+            player_x + player_size > obstacle[0] and
+            player_y < obstacle[1] + obstacle_height and
+            player_y + player_size > obstacle[1]):
+            return True
+    return False
+
+# Game loop
+running = True
+while running:
+    screen.fill(WHITE)
+
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_LEFT] and player_x > 0:
+        player_x -= player_speed
+    if keys[pygame.K_RIGHT] and player_x < SCREEN_WIDTH - player_size:
+        player_x += player_speed
+    if keys[pygame.K_UP] and player_y > 0:
+        player_y -= player_speed
+    if keys[pygame.K_DOWN] and player_y < SCREEN_HEIGHT - player_size:
+        player_y += player_speed
+
+    if random.randint(1, 100) == 1:
+        spawn_obstacle()
+
+    update_obstacles()
+
+    if check_collision():
+        running = False
+
+    for obstacle in obstacle_list:
+        draw_obstacle(obstacle[0], obstacle[1])
+
+    draw_player(player_x, player_y)
+    display_score(score)
+
+    pygame.display.update()
+    clock.tick(30)
+
+pygame.quit()
